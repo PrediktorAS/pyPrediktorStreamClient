@@ -34,10 +34,13 @@ pyPrediktorStreamClient
 =======================
 
 
-    Add a short description here!
+    Python helper functions for talking to APIS PubSub or MQTT
 
 
-A longer description of your project goes here...
+APIS from Prediktor allows you, with the help of modules ("bees") to send
+and receive messags through a message broker. The messages should conform to 
+a specific format. This helper library provides you with Pydantic models for
+the verification of your information before your send it out on the broker.
 
 
 .. _pyscaffold-notes:
