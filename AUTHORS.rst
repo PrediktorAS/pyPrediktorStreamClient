@@ -2,5 +2,4 @@
 Contributors
 ============
 
-* Sobyah siddiqui <sobyah.siddiqui@prediktor.com>
-* Andreas Lydersen <andreas.lydersen@prediktor.com>
+* Prediktor <support@prediktor.com>
