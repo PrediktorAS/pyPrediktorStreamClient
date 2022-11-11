@@ -1,6 +1,6 @@
 import pydantic
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, ClassVar
 import re
 import pytz
 
@@ -26,7 +26,7 @@ class VQT2Payload(pydantic.BaseModel):
     q: Optional[int]
     t: Optional[datetime]
 
-    _check_timestamp = pydantic.validator("t", allow_reuse=True)(validating_timestamp)
+    check_timestamp = pydantic.validator("t", allow_reuse=True)(validating_timestamp)
 
 
 class VQT2(pydantic.BaseModel):
@@ -47,7 +47,7 @@ class HistoricalVQT(pydantic.BaseModel):
     q: int
     t: datetime
 
-    _check_timestamp = pydantic.validator("t", allow_reuse=True)(validating_timestamp)
+    check_timestamp = pydantic.validator("t", allow_reuse=True)(validating_timestamp)
 
 
 class HistoricalPayload(pydantic.BaseModel):
@@ -77,3 +77,49 @@ class Historical(pydantic.BaseModel):
         if value != "historical":
             raise ValueError("messagetype field should be 'historical' to write historical values")
         return value
+
+
+class EventPayload(pydantic.BaseModel):
+    type: str
+    source: str
+    severity: int
+    time: datetime
+    state: str
+    currentvalue: float
+    message: Optional[str]
+    activetime: Optional[datetime]
+    lastquality: Optional[int]
+
+
+    check_time = pydantic.validator("time", allow_reuse=True)(validating_timestamp)
+    check_activetime = pydantic.validator("activetime", allow_reuse=True)(validating_timestamp)
+
+    @pydantic.validator("state")
+    @classmethod
+    def validating_source(cls, value) -> str:
+        states= [None, 'Enabled', 'Active', 'Acked', 'AckRequired', 'Confirmed',
+                                       'Suppressed', 'Shelved', 'Subsates', 'Low', 'High', 'HighHigh', 'LowLow']
+        states_entered= value.replace(' ','').split(',')
+        for state in states_entered:
+            if state not in states:
+                raise ValueError('Invalid event state entered')
+        if ' ' in value:
+            value = value.replace(' ', '')
+            return value
+        return value
+
+
+class Event(pydantic.BaseModel):
+    messagetype: str
+    version: int
+    payload: List[EventPayload]
+
+    @pydantic.validator('messagetype')
+    @classmethod
+    def validating_messagetype(cls, value) -> str:
+        if value != 'event':
+            raise ValueError('messagetype field should be "events" to write to events to the server')
+        return value
+
+
+
