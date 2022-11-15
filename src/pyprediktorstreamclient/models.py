@@ -6,18 +6,13 @@ import pytz
 
 utc_tz = pytz.timezone('UTC')
 
-
 def validating_timestamp(value: datetime):
     if value.tzinfo is None:
         raise ValueError("datetime must contain timezone information")
     elif value.tzname() != 'UTC':
-        tz = value.tzname().replace('UTC', '').replace(':', '')
-        sign, hours, minutes = re.match(r'([+\-]?)(\d{2})(\d{2})', tz).groups()
-        sign = -1 if sign == '-' else 1
-        utc_offset = sign * timedelta(hours=int(hours), minutes=int(minutes))
-        value = value + utc_offset if sign == -1 else value - utc_offset
-        return value.replace(tzinfo=utc_tz).isoformat(timespec='milliseconds')
-    return value.isoformat(timespec='milliseconds')
+        value = value - value.utcoffset()
+        return value.replace(tzinfo=utc_tz).isoformat()
+    return value.isoformat()
 
 
 class VQT2Payload(pydantic.BaseModel):
@@ -139,5 +134,4 @@ class Meta(pydantic.BaseModel):
         if value != 'meta':
             raise ValueError('messagetype field should be "meta" to write to events to the server')
         return value
-
 
